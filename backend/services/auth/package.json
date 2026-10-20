@@ -1,0 +1,29 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "Nexora AI Auth service - Firebase authentication, sessions and user/credit management",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js ",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^14.3.0",
+    "ioredis": "^6.0.0",
+    "mongoose": "^9.9.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

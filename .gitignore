@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables (never commit real secrets)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Firebase service account keys
+backend/services/auth/serviceAccountKey.json
+**/serviceAccountKey.json
+*.session_store.json
+**/.session_store.json
+**/.store.json
+
+# Agent runtime artifacts
+backend/services/agent/temp/
+**/temp/
+test-rag.txt
+
+# SSH / deployment keys
+/deploy-key.pem
+*.pem
+
+# Local backups and generated audit reports
+*.backup
+*.bak
+frontend/audit-report.json
+
+# Local tooling
+.vscode/
+coverage/
+.nyc_output/

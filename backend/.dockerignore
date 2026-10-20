@@ -1,0 +1,21 @@
+# Keep the Docker build context small and reproducible.
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.log
+coverage
+**/coverage
+.nyc_output
+.DS_Store
+Thumbs.db
+*.pem
+**/serviceAccountKey.json
+**/.store.json
+**/.session_store.json
+**/temp

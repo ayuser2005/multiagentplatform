@@ -1,0 +1,161 @@
+# ==============================================================================
+# Nexora AI - Local development stack
+#
+#   cp .env.example .env      # fill in your keys
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# Frontend:  http://localhost:5173   (Nginx container, hot reload disabled)
+# API:       http://localhost:8000   (gateway)
+#
+# For hot module reloading use `npm run dev` in ./frontend instead.
+# ==============================================================================
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: nexora-dev-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth:
+    build:
+      context: ./backend
+      dockerfile: services/auth/Dockerfile
+    container_name: nexora-dev-auth
+    environment:
+      - PORT=8001
+      - NODE_ENV=development
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=${FIREBASE_SERVICE_ACCOUNT_PATH:-}
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON:-}
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/auth:/app/services/auth:ro
+
+  chat:
+    build:
+      context: ./backend
+      dockerfile: services/chat/Dockerfile
+    container_name: nexora-dev-chat
+    environment:
+      - PORT=8002
+      - NODE_ENV=development
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8002:8002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/chat:/app/services/chat:ro
+
+  agent:
+    build:
+      context: ./backend
+      dockerfile: services/agent/Dockerfile
+    container_name: nexora-dev-agent
+    environment:
+      - PORT=8003
+      - NODE_ENV=development
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE=http://auth:8001
+      - CHAT_SERVICE=http://chat:8002
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-south-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    ports:
+      - "8003:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/agent:/app/services/agent
+
+  billing:
+    build:
+      context: ./backend
+      dockerfile: services/billing/Dockerfile
+    container_name: nexora-dev-billing
+    environment:
+      - PORT=8004
+      - NODE_ENV=development
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE=http://auth:8001
+      - INTERNAL_SERVICE_SECRET=${INTERNAL_SERVICE_SECRET}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+    ports:
+      - "8004:8004"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/services/billing:/app/services/billing:ro
+
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: gateway/Dockerfile
+    container_name: nexora-dev-gateway
+    environment:
+      - PORT=8000
+      - NODE_ENV=development
+      - AUTH_SERVICE=http://auth:8001
+      - CHAT_SERVICE=http://chat:8002
+      - AGENT_SERVICE=http://agent:8003
+      - BILLING_SERVICE=http://billing:8004
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth
+      - chat
+      - agent
+      - billing
+    volumes:
+      - ./backend/gateway:/app/gateway:ro
+      - ./backend/shared:/app/shared:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+        VITE_RAZORPAY_KEY_ID: ${VITE_RAZORPAY_KEY_ID:-}
+    container_name: nexora-dev-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway

@@ -1,0 +1,40 @@
+{
+  "name": "nexora-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nexora AI - a microservices-based multi-agent enterprise AI workspace",
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix backend/gateway && npm install --prefix backend/services/auth && npm install --prefix backend/services/chat && npm install --prefix backend/services/billing && npm install --prefix backend/services/agent && npm install --prefix frontend",
+    "dev:gateway": "npm run dev --prefix backend/gateway",
+    "dev:auth": "npm run dev --prefix backend/services/auth",
+    "dev:chat": "npm run dev --prefix backend/services/chat",
+    "dev:agent": "npm run dev --prefix backend/services/agent",
+    "dev:billing": "npm run dev --prefix backend/services/billing",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "test": "npm test --prefix backend/services/agent",
+    "check": "npm run test && npm run lint && npm run build",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d --build",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker compose -f docker-compose.prod.yml logs -f"
+  },
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "langgraph",
+    "microservices",
+    "react",
+    "docker"
+  ]
+}
