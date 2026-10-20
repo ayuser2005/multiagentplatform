@@ -2,7 +2,7 @@
 
 > A production-grade, microservices-based **multi-agent AI platform** that routes natural-language requests to specialised AI agents and returns real, downloadable deliverables — code workspaces, PDF reports, slide decks, and images.
 
-[![CI](https://github.com/<your-username>/nexora-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-username>/nexora-ai/actions/workflows/ci.yml)
+[![CI](https://github.com/ayuser2005/multiagentplatform/actions/workflows/ci.yml/badge.svg)](https://github.com/ayuser2005/multiagentplatform/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-5FA04E.svg)](https://nodejs.org)
 [![React](https://img.shields.io/badge/react-19-61DAFB.svg)](https://react.dev)
@@ -185,7 +185,7 @@ A single prompt can chain agents. *"Research the latest in agent orchestration a
 ### Option A — Docker (recommended)
 
 ```bash
-git clone https://github.com/<your-username>/nexora-ai.git
+git clone https://github.com/ayuser2005/multiagentplatform.git
 cd nexora-ai
 
 cp .env.example .env
@@ -404,4 +404,4 @@ CI additionally boots every backend service and asserts its `/health` endpoint r
 
 Released under the [MIT License](LICENSE).
 
-> Replace the placeholder values in this README (repository URL, screenshots, live demo link) with your own before publishing.
+> Add a screenshot or short GIF of the workspace, and a link to the live demo, before publishing.
