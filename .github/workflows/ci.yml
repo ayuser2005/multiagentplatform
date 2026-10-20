@@ -53,27 +53,49 @@ jobs:
         env:
           MONGODB_URI: mongodb://127.0.0.1:27017/nexora-ci
           REDIS_URL: redis://127.0.0.1:6379
+          PORT: ""
+          AUTH_SERVICE: http://127.0.0.1:8001
+          CHAT_SERVICE: http://127.0.0.1:8002
+          AGENT_SERVICE: http://127.0.0.1:8003
+          BILLING_SERVICE: http://127.0.0.1:8004
+          FRONTEND_URL: http://localhost:5173
         run: |
           set -euo pipefail
 
-          # Redis is not needed for a boot check, but the services import it.
+          # Redis backs the session store; the services fall back to a local
+          # file store if it is unreachable, but we boot a real one so the
+          # Redis code path is exercised.
           docker run -d --name ci-redis -p 6379:6379 redis:7-alpine
 
-          install_service() {
+          # The shared/redis module lives outside every service folder, so
+          # ioredis resolves from the backend workspace root.
+          npm ci --omit=dev --no-audit --no-fund --prefix backend
+
+          boot_service() {
             local name="$1" dir="$2" port="$3"
             echo "::group::Boot $name"
             (cd "$dir" && npm ci --omit=dev --no-audit --no-fund)
-            (cd "$dir" && PORT="$port" node index.js &)
-            sleep 6
-            curl -fsS "http://127.0.0.1:${port}/health"
-            echo
+            (cd "$dir" && PORT="$port" node index.js > /tmp/"$name".log 2>&1 &)
+            for attempt in $(seq 1 20); do
+              if curl -fsS "http://127.0.0.1:${port}/health" > /dev/null 2>&1; then
+                curl -fsS "http://127.0.0.1:${port}/health"
+                echo
+                echo "::endgroup::"
+                return 0
+              fi
+              sleep 2
+            done
             echo "::endgroup::"
+            echo "Service $name failed to boot:"
+            cat /tmp/"$name".log
+            exit 1
           }
 
-          install_service "gateway" backend/gateway 8000
-          install_service "auth" backend/services/auth 8001
-          install_service "chat" backend/services/chat 8002
-          install_service "billing" backend/services/billing 8004
+          boot_service "gateway" backend/gateway 8000
+          boot_service "auth" backend/services/auth 8001
+          boot_service "chat" backend/services/chat 8002
+          boot_service "agent" backend/services/agent 8003
+          boot_service "billing" backend/services/billing 8004
 
           docker rm -f ci-redis || true
 
